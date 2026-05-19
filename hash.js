@@ -1,14 +1,7 @@
-var window = require('global/window')
-var assert = require('assert')
-
-module.exports = hash
-
-// listen to window hashchange events
-// and update router accordingly
-// fn(cb) -> null
-function hash (cb) {
-  assert.equal(typeof cb, 'function', 'sheet-router/hash: cb must be a function')
-  window.onhashchange = function (e) {
+export default function hash (cb) {
+  if (typeof cb !== 'function') throw new TypeError('sheet-router/hash: cb must be a function')
+  if (typeof window === 'undefined') return
+  window.addEventListener('hashchange', function (e) {
     cb(window.location.hash)
-  }
+  })
 }

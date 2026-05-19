@@ -1,19 +1,9 @@
-var window = require('global/window')
-var assert = require('assert')
+import window from 'global/window.js'
+import qs from './qs.js'
 
-var qs = require('./qs')
+const noRoutingAttrName = 'data-no-routing'
 
-module.exports = href
-
-var noRoutingAttrName = 'data-no-routing'
-
-// handle a click if is anchor tag with an href
-// and url lives on the same domain. Replaces
-// trailing '#' so empty links work as expected.
-// (fn(str), obj?) -> undefined
-function href (cb, root) {
-  assert.equal(typeof cb, 'function', 'sheet-router/href: cb must be a function')
-
+export default function href (cb, root) {
   window.onclick = function (e) {
     if ((e.button && e.button !== 0) || e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return
 

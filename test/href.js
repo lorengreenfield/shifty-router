@@ -1,12 +1,21 @@
-const tape = require('tape')
-const href = require('../href')
-const window = require('global/window') // will be empty object shared with href
-const sinon = require('sinon')
+import { expect } from 'chai'
+import href from '../href.js'
+import window from 'global/window.js' // will be empty object shared with href
+import sinon from 'sinon'
 
 window.history = { pushState: sinon.spy() }
-window.location = {}
+window.location = {
+  protocol: 'http:',
+  hostname: 'localhost',
+  port: ''
+}
 
-const goodLink = { localName: 'a', href: 'someUrl#', pathname: 'someUrl', hasAttribute: () => {} }
+const goodLink = {
+  localName: 'a',
+  href: 'http://localhost/someUrl#',
+  pathname: '/someUrl',
+  hasAttribute: () => {}
+}
 
 const nonCatchEvents = {
   'non-links': {
@@ -35,9 +44,8 @@ const nonCatchEvents = {
   }
 }
 
-tape('href', (t) => {
-  t.test('should capture link click', (t) => {
-    t.plan(3)
+describe('href', () => {
+  it('should capture link click', () => {
     const event = {
       target: {
         localName: 'somethingOtherThanALink',
@@ -52,33 +60,33 @@ tape('href', (t) => {
     href(cb)
     window.onclick(event)
 
-    t.equal(event.preventDefault.callCount, 1)
-    t.equal(cb.callCount, 1)
-    t.deepEqual(cb.lastCall.args[0], {
-      hash: undefined, href: 'someUrl#', pathname: 'someUrl', search: {}
+    expect(event.preventDefault.callCount).to.equal(1)
+    expect(cb.callCount).to.equal(1)
+    expect(cb.lastCall.args[0]).to.deep.equal({
+      hash: undefined, href: 'http://localhost/someUrl#', pathname: '/someUrl', search: {}
     })
   })
 
   for (var nonCatchEvent in nonCatchEvents) {
-    t.test('should avoid ' + nonCatchEvent, (t) => {
-      t.plan(3)
-      const event = Object.assign({
-        target: goodLink,
-        preventDefault: sinon.spy()
-      }, nonCatchEvents[nonCatchEvent])
-      const previousPushCount = window.history.pushState.callCount
-      const cb = sinon.spy()
-      href(cb)
-      window.onclick(event)
+    (function (name, config) {
+      it('should avoid ' + name, () => {
+        const event = Object.assign({
+          target: goodLink,
+          preventDefault: sinon.spy()
+        }, config)
+        const previousPushCount = window.history.pushState.callCount
+        const cb = sinon.spy()
+        href(cb)
+        window.onclick(event)
 
-      t.equal(event.preventDefault.callCount, 0)
-      t.equal(cb.callCount, 0)
-      t.equal(window.history.pushState.callCount, previousPushCount)
-    })
+        expect(event.preventDefault.callCount).to.equal(0)
+        expect(cb.callCount).to.equal(0)
+        expect(window.history.pushState.callCount).to.equal(previousPushCount)
+      })
+    })(nonCatchEvent, nonCatchEvents[nonCatchEvent])
   }
 
-  t.test('should avoid link outside provided root', (t) => {
-    t.plan(3)
+  it('should avoid link outside provided root', () => {
     const event = {
       target: {
         localName: 'somethingOtherThanALink',
@@ -95,8 +103,8 @@ tape('href', (t) => {
     href(cb, root)
     window.onclick(event)
 
-    t.equal(event.preventDefault.callCount, 0)
-    t.equal(cb.callCount, 0)
-    t.equal(window.history.pushState.callCount, previousPushCount)
+    expect(event.preventDefault.callCount).to.equal(0)
+    expect(cb.callCount).to.equal(0)
+    expect(window.history.pushState.callCount).to.equal(previousPushCount)
   })
 })
