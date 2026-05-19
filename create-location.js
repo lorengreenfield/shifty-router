@@ -1,6 +1,6 @@
-const qs = require('./qs.js')
+import qs from './qs.js'
 
-module.exports = function createLocation (state, patch) {
+export default function createLocation (state, patch) {
   if (typeof window === 'undefined') {
     return { pathname: '', search: {}, hash: '', href: '' }
   }

@@ -167,7 +167,7 @@ Sometimes you want to mirror the browser location API inside an object to use
 inside a framework. The hard part is to compute the new `href` from a set of
 changes. `create-location` provides an API to do just that:
 ```js
-const createLocation = require('shifty-router/create-location')
+import createLocation from 'shifty-router/create-location.js'
 
 document.location = '/foo/bar#hey?beep=boop'
 var location = createLocation()
