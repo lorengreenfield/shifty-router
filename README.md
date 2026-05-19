@@ -261,11 +261,6 @@ Call a callback to handle html5 pushsState history.
 ### href(cb(href))
 Call a callback to handle `<a href="#">` clicks.
 
-## See Also
-- [wayfarer][12]
-- [hyperx][14]
-- [choo](https://github.com/yoshuawuyts/choo)
-
 ## License
 [MIT](https://tldrlegal.com/license/mit-license)
 

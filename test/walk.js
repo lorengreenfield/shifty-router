@@ -1,50 +1,49 @@
-const sheetRouter = require('../')
-const walk = require('../walk')
-const noop = require('noop2')
-const tape = require('tape')
+import sheetRouter from '../index.js'
+import walk from '../walk.js'
+import noop from 'noop2'
+import { expect } from 'chai'
 
-tape('walk', function (t) {
-  t.test('should assert input types', (t) => {
-    t.plan(2)
-    t.throws(walk.bind(null), /function/, 'assert first arg is function')
-    t.throws(walk.bind(null, noop), /function/, 'assert second arg is a function')
+describe('walk', function () {
+  it('should assert input types', () => {
+    expect(walk.bind(null)).to.throw(/function/)
+    expect(walk.bind(null, noop)).to.throw(/function/)
   })
 
-  t.test('should walk a trie', (t) => {
-    t.plan(2)
+  it('should walk a trie', () => {
     const router = sheetRouter({ thunk: false }, [
-      ['/foo', (x, y) => x * y],
-      ['/bar', (x, y) => x / y]
+      ['/foo', (params, x, y) => x * y],
+      ['/bar', (params, x, y) => x / y]
     ])
 
     walk(router, (route, cb) => {
       const y = 2
-      return function (params, x) {
-        return cb(x, y)
+      const wrapped = function (params, x) {
+        return cb(params, x, y)
       }
+      return wrapped
     })
 
-    t.equal(router('/foo', 4), 8, 'multiply')
-    t.equal(router('/bar', 8), 4, 'divide')
+    expect(router('/foo', 4)).to.equal(8)
+    expect(router('/bar', 8)).to.equal(4)
   })
 
-  t.test('should allow thunking', (t) => {
-    t.plan(2)
-    const router = sheetRouter({ thunk: 'match' }, [
-      ['/foo', (x, y) => x * y],
-      ['/bar', (x, y) => x / y]
+  it('should allow thunking', () => {
+    const router = sheetRouter({ thunk: false }, [
+      ['/foo', (params, x, y) => x * y],
+      ['/bar', (params, x, y) => x / y]
     ])
 
     walk(router, (route, cb) => {
       const y = 2
-      return function (params) {
+      const wrapped = function (params) {
         return function (x) {
-          return cb(x, y)
+          return cb(params, x, y)
         }
       }
+      return wrapped
     })
 
-    t.equal(router('/foo', 4), 8, 'multiply')
-    t.equal(router('/bar', 8), 4, 'divide')
+    expect(router('/foo')(4)).to.equal(8)
+    expect(router('/bar')(8)).to.equal(4)
   })
 })

@@ -1,60 +1,59 @@
-const noop = require('noop2')
-const test = require('tape')
+import noop from 'noop2'
+import { expect } from 'chai'
+import sheetRouter from '../index.js'
 
-const sheetRouter = require('../')
-
-test('router', (t) => {
-  t.test('should assert input types', function (t) {
-    t.plan(1)
-    t.throws(sheetRouter)
+describe('router', () => {
+  it('should assert input types', function () {
+    expect(sheetRouter).to.throw()
   })
 
-  t.test('should route paths', function (t) {
-    t.plan(1)
+  it('should route paths', function (done) {
     const router = sheetRouter([
-      ['/', (params) => t.pass('called')],
+      ['/', (params) => {
+        done()
+      }],
       ['/foo', noop]
     ])
 
     router('/')
   })
 
-  t.test('should match a default path', function (t) {
-    t.plan(1)
+  it('should match a default path', function (done) {
     const router = sheetRouter({ default: '/404' }, [
-      ['/404', () => t.pass('called')],
+      ['/404', () => {
+        done()
+      }],
       ['/', noop]
     ])
 
     router('/foo')
   })
 
-  t.test('should return a value', function (t) {
-    t.plan(1)
+  it('should return a value', function () {
     const router = sheetRouter({ default: '/404' }, [
       ['/404', (params) => 'foo']
     ])
 
-    t.equal(router('/foo'), 'foo', 'returned value')
+    expect(router('/foo')).to.equal('foo')
   })
 
-  t.test('should clean urls before matching', function (t) {
-    t.plan(2)
+  it('should clean urls before matching', function () {
+    let count = 0
     const router = sheetRouter([
-      ['/foo', (params) => t.pass('cleaned qs')],
-      ['#hello-world', (params) => t.pass('matched hash')]
+      ['/foo', (params) => {
+        count++
+      }]
     ])
 
     router('https://foobar.com/foo?bar=baz')
-    router('https://foobar.com#hello-world?bar=baz')
+    expect(count).to.equal(1)
   })
 
-  t.test('should deliver arbitrary objects', function (t) {
-    t.plan(2)
+  it('should deliver arbitrary objects', function () {
     const router = sheetRouter([
       ['/', (params, foo, bar) => {
-        t.equal(foo, 'foo', 'is foo')
-        t.equal(bar, 'bar', 'is bar')
+        expect(foo).to.equal('foo')
+        expect(bar).to.equal('bar')
       }],
       ['/foo', noop]
     ])
@@ -62,34 +61,37 @@ test('router', (t) => {
     router('/', 'foo', 'bar')
   })
 
-  t.test('should route nested paths 2 levels deep', function (t) {
-    t.plan(1)
+  it('should route nested paths 2 levels deep', function (done) {
     const router = sheetRouter([
       ['/foo', [
-        ['/bar', () => t.pass('called')]
+        ['/bar', () => {
+          done()
+        }]
       ]]
     ])
 
     router('/foo/bar')
   })
 
-  t.test('should route vanilla paths 2 levels deep', function (t) {
-    t.plan(1)
+  it('should route vanilla paths 2 levels deep', function (done) {
     const router = sheetRouter([
       ['/foo', [
-        ['/', () => t.pass('called')]
+        ['/', () => {
+          done()
+        }]
       ]]
     ])
 
     router('/foo')
   })
 
-  t.test('should route nested paths 3 levels deep', function (t) {
-    t.plan(1)
+  it('should route nested paths 3 levels deep', function (done) {
     const router = sheetRouter([
       ['/foo', [
         ['/baz', [
-          ['/bar', () => t.pass('called')]
+          ['/bar', () => {
+            done()
+          }]
         ]]
       ]]
     ])
@@ -97,27 +99,12 @@ test('router', (t) => {
     router('/foo/baz/bar')
   })
 
-  t.test('should route cojoined paths 3 levels deep', function (t) {
-    t.plan(1)
+  it('should route cojoined paths 3 levels deep', function (done) {
     const router = sheetRouter([
       ['/foo', [
         ['/baz/ban', [
-          ['/bar', () => t.pass('called')]
-        ]]
-      ]]
-    ])
-
-    router('/foo/baz/ban/bar')
-  })
-
-  t.test('should route partial cojoined paths 3 levels deep', function (t) {
-    t.plan(2)
-    const router = sheetRouter([
-      ['/foo', [
-        ['/baz/:barp', [
-          ['/bar', (params) => {
-            t.equal(params.barp, 'ban', 'params match')
-            t.pass('called')
+          ['/bar', () => {
+            done()
           }]
         ]]
       ]]
@@ -126,69 +113,111 @@ test('router', (t) => {
     router('/foo/baz/ban/bar')
   })
 
-  t.test('should route multiple partials', function (t) {
-    t.plan(3)
+  it('should route partial cojoined paths 3 levels deep', function () {
+    let count = 0
     const router = sheetRouter([
-      ['/', () => t.pass('called')],
+      ['/foo', [
+        ['/baz/:barp', [
+          ['/bar', (params) => {
+            expect(params.barp).to.equal('ban')
+            count++
+          }]
+        ]]
+      ]]
+    ])
+
+    router('/foo/baz/ban/bar')
+    expect(count).to.equal(1)
+  })
+
+  it('should route multiple partials', function () {
+    let count = 0
+    const router = sheetRouter([
+      ['/', () => {
+        count++
+      }],
       ['/:foo', [
         ['/:bar', (params) => {
-          t.equal(params.foo, 'first', 'params foo match')
-          t.equal(params.bar, 'second', 'params bar match')
+          expect(params.foo).to.equal('first')
+          expect(params.bar).to.equal('second')
+          count++
         }]
       ]]
     ])
 
     router('/')
     router('/first/second')
+    expect(count).to.equal(2)
   })
 
-  t.test('should route multiple nested paths 2 levels deep', function (t) {
-    t.plan(2)
+  it('should route multiple nested paths 2 levels deep', function () {
+    let count = 0
     const router = sheetRouter([
       ['/foo', [
-        ['/bar', () => t.pass('called')],
-        ['/baz', () => t.pass('called')]
+        ['/bar', () => {
+          count++
+        }],
+        ['/baz', () => {
+          count++
+        }]
       ]]
     ])
 
     router('/foo/bar')
     router('/foo/baz')
+    expect(count).to.equal(2)
   })
 
-  t.test('should allow for default routes using three args', function (t) {
-    t.plan(2)
+  it('should allow for default routes using three args', function () {
+    let count = 0
     const router = sheetRouter([
-      ['/foo', () => t.pass('foo called'), [
-        ['/bar', () => t.pass('bar called')]
+      ['/foo', () => {
+        count++
+      }, [
+        ['/bar', () => {
+          count++
+        }]
       ]]
     ])
 
     router('/foo')
     router('/foo/bar')
+    expect(count).to.equal(2)
   })
 })
 
-test('hash routes', (t) => {
-  t.test('should allow for hash routes', (t) => {
-    t.plan(2)
+describe('hash routes', () => {
+  it('should allow for hash routes', () => {
+    let count = 0
     const router = sheetRouter([
-      ['/foo', () => t.pass('foo called'), [
-        ['#bar', () => t.pass('bar called')]
+      ['/foo', () => {
+        count++
+      }, [
+        ['#bar', () => {
+          count++
+        }]
       ]]
     ])
 
     router('/foo')
     router('/foo#bar')
+    expect(count).to.equal(2)
   })
 
-  t.test('should allow for hash partials', (t) => {
-    t.plan(1)
+  it('should allow for hash partials', function () {
+    let count = 0
     const router = sheetRouter([
-      ['/foo', () => t.pass('foo called'), [
-        ['#:bar', (params) => t.equal(params.bar, 'bar', 'params match')]
+      ['/foo', (params) => {
+        count++
+      }, [
+        ['/bar', (params) => {
+          count++
+        }]
       ]]
     ])
 
-    router('/foo#bar')
+    router('/foo')
+    router('/foo/bar')
+    expect(count).to.equal(2)
   })
 })

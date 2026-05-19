@@ -1,15 +1,15 @@
 {
   "name": "shifty-router",
-  "version": "0.1.1",
-  "description": "Fast, modular client router, based on sheet-router",
+  "version": "1.0.0",
+  "description": "Fast, modular client router",
+  "type": "module",
   "main": "index.js",
-  "@std/esm": {
-    "cjs": true,
-    "esm": "js"
-  },
   "scripts": {
-    "test": "standard && NODE_ENV=test tape test/*",
-    "test:cov": "standard && NODE_ENV=test istanbul cover test/*"
+    "test": "NODE_ENV=test mocha 'test/**/*.js'",
+    "test:cov": "NODE_ENV=test c8 mocha 'test/**/*.js'",
+    "versionbump:fix": "npm version patch --no-git-tag-version",
+    "versionbump:feature": "npm version minor --no-git-tag-version",
+    "versionbump:breaking": "npm version major --no-git-tag-version"
   },
   "repository": {
     "type": "git",
@@ -29,17 +29,22 @@
   "license": "MIT",
   "dependencies": {
     "global": "^4.3.0",
-    "wayfarer": "^6.2.1",
     "xtend": "^4.0.1"
   },
+  "standard": {
+    "env": [
+      "mocha"
+    ]
+  },
   "devDependencies": {
+    "c8": "^11.0.0",
+    "chai": "^6.2.2",
     "dependency-check": "^2.5.1",
-    "istanbul": "^0.4.1",
     "jsdom": "^9.4.2",
+    "mocha": "^11.7.5",
     "noop2": "^2.0.0",
     "sinon": "^1.17.5",
     "standard": "^5.4.1",
-    "tape": "^4.4.0",
     "virtual-dom": "^2.1.1"
   }
 }
